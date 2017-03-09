@@ -21,7 +21,7 @@
 			"By" => "Par",
 			"Bugs? Ideas? Tell me more on" => "Bugs ? Idées ? Faites-m'en part sur",
 			"The project page on Github" => "La page du projet sur Github",
-			"Close" => "Fermer"
+			"Close" => "Fermer",
 			"ALL" => "TOUS"
 		)
 	);
