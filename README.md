@@ -3,7 +3,9 @@ Benflix
 
 Beautify your movie collection with a Netflix-like, one-file index page.
 
+![Main page](https://pbs.twimg.com/media/C6f7qySWUAE89bT.png)
 
+![Details of a movie](https://pbs.twimg.com/media/C6f7qyfWQAE1dmt.png)
 
 Description
 -----------
