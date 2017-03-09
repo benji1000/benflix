@@ -22,6 +22,7 @@
 			"Bugs? Ideas? Tell me more on" => "Bugs ? Idées ? Faites-m'en part sur",
 			"The project page on Github" => "La page du projet sur Github",
 			"Close" => "Fermer"
+			"ALL" => "TOUS"
 		)
 	);
 
@@ -581,14 +582,14 @@
 				</div>
 
 				<div id="runtime-selector" class="buttons-topbar btn-group" role="group" style="display: none;">
-					<button type="button" class="btn btn-danger btn-xs" data-runtime="*">ALL</button>
+					<button type="button" class="btn btn-danger btn-xs" data-runtime="*"><?php echo translate('ALL'); ?></button>
 					<button type="button" class="btn btn-default btn-xs" data-runtime="90">< 1.5 h</button>
 					<button type="button" class="btn btn-default btn-xs" data-runtime="120">< 2 h</button>
 					<button type="button" class="btn btn-default btn-xs" data-runtime="180">< 3 h</button>
 				</div>
 
 				<div id="imdb-selector" class="buttons-topbar btn-group" role="group" style="display: none;">
-					<button type="button" class="btn btn-warning btn-xs" data-imdb="*">ALL</button>
+					<button type="button" class="btn btn-warning btn-xs" data-imdb="*"><?php echo translate('ALL'); ?></button>
 					<button type="button" class="btn btn-default btn-xs" data-imdb="9">IMDb > 9</button>
 					<button type="button" class="btn btn-default btn-xs" data-imdb="8">IMDb > 8</button>
 					<button type="button" class="btn btn-default btn-xs" data-imdb="7">IMDb > 7</button>
@@ -597,7 +598,7 @@
 				</div>
 
 				<div id="genre-selector" class="buttons-topbar btn-group" role="group" style="display: none;">
-					<button type="button" class="btn btn-success btn-xs" data-genre="*">ALL</button>
+					<button type="button" class="btn btn-success btn-xs" data-genre="*"><?php echo translate('ALL'); ?></button>
 					<button type="button" class="btn btn-default btn-xs" data-genre="Adventure">Adventure</button>
 					<button type="button" class="btn btn-default btn-xs" data-genre="Animation">Animation</button>
 					<button type="button" class="btn btn-default btn-xs" data-genre="Biography">Biography</button>
