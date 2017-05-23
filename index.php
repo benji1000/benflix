@@ -1,12 +1,18 @@
 <?php
 	// Change the language of the UI here
 	define("LANGUAGE", "en");
+	
+	// In order for Benflix to work, you have to get an API key from the OMDb API.
+	// Support the creator (it's not me!) here: https://www.patreon.com/omdb/
+	// Then claim your key from here: http://www.omdbapi.com/apikey.aspx and insert it below.
+	define("API_KEY", "PLACE_YOUR_API_KEY_HERE");
 
 	// The array containing all languages strings
 	// Feel free to add another subarray for your language
 	$i18n = Array(
 		"fr" => Array(
-			"Benflix needs JavaScript enabled to work ☺" => "Benflix a besoin que JavaScript soit activé ☺",
+			"You need to get an API key for the OMDb API. Don\'t worry, it\'s very simple!\nPlease read the instructions at the top of this file." => "Il vous faut une clé pour accéder à l'API d'OMDb. Pas de panique, c'est très simple !\nMerci de consulter les instructions dans les premières lignes de ce fichier.",
+			"Benflix needs JavaScript enabled to work." => "Benflix a besoin que JavaScript soit activé.",
 			"Go to the IMDb page" => "Voir la fiche sur IMDb",
 			"Watch the trailer on YouTube" => "Voir la bande-annonce",
 			"Download the movie" => "Télécharger le film",
@@ -70,7 +76,7 @@
 			$movieName = '50/50';
 		}
 		$movieName = rawurlencode($movieName);
-		$json = get_url_contents('http://www.omdbapi.com/?t='.$movieName.'&r=json');
+		$json = get_url_contents('http://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieName.'&r=json');
 		return $json;
 	}
 
@@ -101,7 +107,7 @@
 		<script src="//code.jquery.com/jquery-latest.min.js"></script>
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 		<link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVQ4jcWSyw2DMBBEX6IUQAURJVBBBB1QQT6XaQNRAfc9pgI6gFQASgVRKqCEHDCR5UTAjZFWXq/X4/FoYWvswoKkK3AJygPwAGoze/kH+z+kRyANIgcqoJMULxFM6IHMReFqEXD2mw4zBIOZtS5vJd2AOGyaI4gkpS4/eZefawkSoPEVAZWZ1X7TnAcD0Lp4Mf6/lJSvVdCbWTZtJHVOVQF8Vcwp+CF0a7JWgW9izDgL+K8vEYQmwuhLuUTwZjQuRAPcw1HeHh8kSTJnDU8pPQAAAABJRU5ErkJggg=="/>
-
+		
 		<style>
 			/* GLOBAL STYLES */
 			body {
@@ -328,22 +334,28 @@
 			}
 
 			$(window).load(function() {
-				// Request all movies available on the server at page load
-				$.ajax({
-					url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
-					type : 'POST',
-					data : 'action=getAvailableMovies',
-					dataType: 'json',
-					success : function(fileList, status){
-						fileList.forEach(function(fileName){
-							getMovieInfo(fileName);
-						});
-					},
-					error : function(result, status, error){
-						console.log("Couldn't get the list of available movies.");
-					}
-				});
-
+				// Test if the user correctly changed the API key
+				if(("<?php echo API_KEY; ?>" == 'PLACE_YOUR_API_KEY_HERE') || ("<?php echo API_KEY; ?>" == '')){
+					alert("<?php echo translate('You need to get an API key for the OMDb API. Don\'t worry, it\'s very simple!\nPlease read the instructions at the top of this file.'); ?>");
+				}
+				else {
+					// Request all movies available on the server at page load
+					$.ajax({
+						url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
+						type : 'POST',
+						data : 'action=getAvailableMovies',
+						dataType: 'json',
+						success : function(fileList, status){
+							fileList.forEach(function(fileName){
+								getMovieInfo(fileName);
+							});
+						},
+						error : function(result, status, error){
+							console.log("Couldn't get the list of available movies.");
+						}
+					});
+				}
+				
 				// Hide the spinner and show the filters
 				$('.spinner').fadeOut('slow', function() {
 					$('.buttons-topbar').fadeIn('slow');
@@ -688,7 +700,7 @@
 			<!-- Container for the list of available movies -->
 			<div id="movieList" class="row">
 				<div id="nothing" class="big-error-message"><?php echo translate('No movie matches criteria'); ?></div>
-				<noscript><div class="big-error-message"><?php echo translate('Benflix needs JavaScript enabled to work ☺'); ?></div></noscript>
+				<noscript><div class="big-error-message"><?php echo translate('Benflix needs JavaScript enabled to work.'); ?></div></noscript>
 			</div>
 		</div>
 	</body>

@@ -26,7 +26,6 @@ Features do **NOT** include:
  - Filter your collection by video or sound quality.
  - Administration: there are no settings to set, except the UI language (at the very top of the file).
 
-
 Requirements
 ---------------
 
@@ -37,9 +36,16 @@ To **install**, Benflix requires:
 To **use**, Benflix requires:
 * Access to the Internet.
 * Javascript enabled in the browser.
+* An API key for the [OMDb API](http://www.omdbapi.com/).
+
+The API key requirement is new and a bit annoying, but it is required to make Benflix work. I would be happy to add the support for a free API (if such a thing exists and is reliable...), but in the meantime, you have to get an API key. I am not the creator of the OMDb API.
 
 Installation
 ------------------
+
+[Support the OMDb project on Patreon](https://www.patreon.com/omdb/), and then claim your API key from [this page](http://www.omdbapi.com/apikey.aspx). Please note that you just need the basic API access, and not the poster API.
+
+Your API key will be sent to your email, you then have to place it on line 8 of the file.
 
 Just put the `index.php` file in the folder containing all your video files. That's it!
 
