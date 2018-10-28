@@ -2,9 +2,8 @@
 	// Change the language of the UI here
 	define("LANGUAGE", "en");
 	
-	// In order for Benflix to work, you have to get an API key from the OMDb API.
-	// Support the creator (it's not me!) here: https://www.patreon.com/omdb/
-	// Then claim your key from here: http://www.omdbapi.com/apikey.aspx and insert it below.
+	// You have to get an API key from the OMDb API (it's free, you only have to provide a working email address).
+	// You can register for an API key here: http://www.omdbapi.com/apikey.aspx and insert it below.
 	define("API_KEY", "PLACE_YOUR_API_KEY_HERE");
 
 	// The array containing all languages strings
@@ -392,7 +391,7 @@
 					$("#modal-runtime").text(hours + 'h' + ("0" + minutes).slice(-2));
 				});
 
-				// Enable search when pressing Ctl+F
+				// Enable search when pressing Ctrl+F
 				$(window).keypress(function(event){
 				    if (!(event.which == 115 && event.ctrlKey) && !(String.fromCharCode(event.which).toLowerCase() == 'f')) return true;
 				    $('.modal').not('#search-modal').modal('hide');
