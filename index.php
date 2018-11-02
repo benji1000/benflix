@@ -23,11 +23,23 @@
 			"IMDB rating:" => "Note IMDb :",
 			"Search for a movie..." => "Chercher un film...",
 			"No movie matches criteria" => "Aucun film correspondant",
+			"Deactivate some filters" => "Désactivez certains filtres",
 			"By" => "Par",
 			"Bugs? Ideas? Tell me more on" => "Bugs ? Idées ? Faites-m'en part sur",
 			"The project page on Github" => "La page du projet sur Github",
 			"Close" => "Fermer",
-			"ALL" => "TOUS"
+			"All" => "Tous",
+			"Search for a movie" => "Rechercher un film",
+			"Close" => "Fermer",
+			"Filter by IMDb score" => "Filtrer par note IMDb",
+			"Filter by movie length" => "Filtrer par durée",
+			"Filter by category" => "Filtrer par catégorie",
+			"About this app" => "À propos de Benflix",
+			"Close this modal" => "Afficher les résultats",
+			"Search" => "Rechercher",
+			"Runtime" => "Durée",
+			"IMDb rating" => "Note IMDb",
+			"Genre" => "Genre"
 		)
 	);
 
@@ -167,6 +179,9 @@
 				left: 0;
 				right: 0;
 			}
+			.error-message-subtext{
+				font-size: 35px;
+			}
 			.img-thumbnail {
 				height: 300px !important;
 				width: 210px !important;
@@ -182,6 +197,10 @@
 
 			/* MOVIE MODAL */
 			.modal-body > .container {
+				max-width: 100%;
+			}
+			#extended-infos > p > .btn {
+				width: 340px;
 				max-width: 100%;
 			}
 			.modal {
@@ -204,8 +223,14 @@
 
 			/* SEARCH MODAL */
 			#search-modal p {
+				margin-top: 10px;
+				text-align: center;
+				margin-bottom: 0;
+			}#search-modal h1 {
 				font-size: 18px;
 				text-align: center;
+				margin-top: 0;
+				margin-bottom: 15px;
 			}
 			#search-modal .form-group {
 				margin-bottom: 0;
@@ -230,7 +255,6 @@
 				position: fixed;
 				z-index: 8;
 				background: #1d1d1d;
-				overflow: hidden;
 				font-size: 1.3em;
 				color: #7d7d7d;
 				border-bottom: 1px solid #2f2f2f;
@@ -252,6 +276,20 @@
 				margin-left: 10px;
 				margin-top: 9px;
 			}
+			.dropdown-menu {
+				z-index: 9999;
+				min-width: 0px !important;
+				width: 125px;
+			}
+			.dropdown-menu > li > a > strong {
+				font-variant: all-small-caps;
+				font-size: 16px;
+			}
+			@media (max-width: 725px){
+				.big-screens {
+					display: none;
+				}
+			}
 			@media (max-width: 992px){
 				.img-thumbnail {
 					height: 140px !important;
@@ -268,29 +306,9 @@
 		</style>
 
 		<script>
-			// Resets the buttons to their default state
-			function reset_other_buttons(type){
-				if(type != "runtime"){
-					$('#runtime-selector > button').each(function(i, btn){
-						$(btn).removeClass('btn-danger');
-						$(btn).addClass('btn-default');
-					});
-				}
-				if(type != "imdb"){
-					$('#imdb-selector > button').each(function(i, btn){
-						$(btn).removeClass('btn-warning');
-						$(btn).addClass('btn-default');
-					});
-				}
-				if(type != "genre"){
-					$('#genre-selector > button').each(function(i, btn){
-						$(btn).removeClass('btn-success');
-						$(btn).addClass('btn-default');
-					});
-				}
-			}
-
-			function getMovieInfo(fileName){
+			var genresAvailable = new Array();
+		
+			function getMovieInfo(fileName, changeTime, id){
 				$.ajax({
 					url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
 					type : 'POST',
@@ -299,6 +317,14 @@
 					success: function(movieInfo){
 						if(movieInfo.Response == 'True'){
 							$('#movieList').append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-file="'+fileName+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
+						
+							// Set an array of available genres
+							var genres = movieInfo.Genre.split(', ');
+							genres.forEach(function(genre){
+								if(genresAvailable.indexOf(genre) < 0){
+									genresAvailable.push(genre)
+								}
+							});
 						}
 						else {
 							console.log("Couldn't get the movie info for file: " + fileName);
@@ -333,7 +359,7 @@
 			}
 
 			$(window).load(function() {
-				// Test if the user correctly changed the API key
+				// Check that the user has an API key
 				if(("<?php echo API_KEY; ?>" == 'PLACE_YOUR_API_KEY_HERE') || ("<?php echo API_KEY; ?>" == '')){
 					alert("<?php echo translate('You need to get an API key for the OMDb API. Don\'t worry, it\'s very simple!\nPlease read the instructions at the top of this file.'); ?>");
 				}
@@ -345,8 +371,10 @@
 						data : 'action=getAvailableMovies',
 						dataType: 'json',
 						success : function(fileList, status){
-							fileList.forEach(function(fileName){
-								getMovieInfo(fileName);
+							var id = 0;
+							fileList.forEach(function(filename){
+								getMovieInfo(filename);
+								id++;
 							});
 						},
 						error : function(result, status, error){
@@ -357,7 +385,7 @@
 				
 				// Hide the spinner and show the filters
 				$('.spinner').fadeOut('slow', function() {
-					$('.buttons-topbar').fadeIn('slow');
+					$('#controls').fadeIn('fast');
 				});
 
 				// Handle a click on a poster
@@ -413,168 +441,75 @@
 				$('#search-input').on('keyup',function(){
 					search($(this).val().toLowerCase());
 				});
-
-				// Handle the runtime selector button group
-				$('#runtime-selector > button').on('click',function(){
-					// Uncolor the other buttons
-					reset_other_buttons("runtime");
-					$('#runtime-selector > button').each(function(i, btn){
-						$(btn).removeClass('btn-danger');
-						$(btn).addClass('btn-default');
-					});
-
-					// Color this button only
-					$(this).removeClass('btn-default');
-					$(this).addClass('btn-danger');
-
-					// Hide or display movies according to what the user asked
-					var runtime = $(this).data('runtime');
-					if(runtime == '*'){
-						// Display all movies
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).is(':hidden')){
-								$(img).show();
-							}
-						});
+				
+				// Handle a filter button
+				$('.buttons-topbar').on('click','.dropdown-menu li a',function(){
+					//Adds active class to selected item
+					$(this).parents('.dropdown-menu').find('li').removeClass('active');
+					$(this).parent('li').addClass('active');
+   
+					// Handle the styling of a filter button
+					var text = $(this).text();
+					var value = $(this).data('value');
+					var button = $(this).parents('.btn-group');
+					var id = button.attr('id');
+					var icon = '';
+					switch(id) {
+						case 'runtime-selector':
+							icon = '<span class="glyphicon glyphicon-time" aria-hidden="true"></span>';
+							defaultText = '<?php echo translate('Runtime'); ?>';
+							break;
+						case 'imdb-selector':
+							icon = '<span class="glyphicon glyphicon-star" aria-hidden="true"></span>';
+							defaultText = 'IMDb';
+							break;
+						case 'genre-selector':
+							icon = '<span class="glyphicon glyphicon-th" aria-hidden="true"></span>';
+							defaultText = 'Genre';
+							break;
+					}
+					if(value != '*'){
+						button.find('.dropdown-toggle').html(icon + ' ' + text + ' <span class="caret"></span>').addClass('btn-warning');
 					}
 					else {
-
-						// Hide non-corresponding movies
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).data('runtime') > runtime){
-								if($(img).is(':visible')) {
-									$(img).hide();
-								}
-							}
-						});
-
-						// Display corresponding movies
-						var found = 0;
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).data('runtime') <= runtime){
-								found += 1;
-								if($(img).is(':hidden')) {
-									$(img).show();
-								}
-							}
-						});
-
-						// If no movie matches the criteria, display a warning
-						if(found == 0){
-							$('#nothing').show();
+						button.find('.dropdown-toggle').html(icon + ' ' + defaultText + ' <span class="caret"></span>').removeClass('btn-warning');
+					}
+					button.data('value', value);
+					
+					// Highlight the entry and get the values of ALL dropdowns
+					var runtime = $('#runtime-selector').data('value');
+					var imdb = $('#imdb-selector').data('value');
+					var genre = $('#genre-selector').data('value');
+					
+					// Hide all movies then display only relevant ones
+					var showed = 0;
+					$('.img-thumbnail').each(function(i, img){
+						$(img).hide();
+						console.log($(img).data('file'), $(img).data('runtime'), $(img).data('imdbrating'), $(img).data('genre'));
+						if(
+							((runtime == '*') || ($(img).data('runtime') <= runtime))
+							&& ((imdb == '*') || ($(img).data('imdbrating') >= imdb))
+							&& ((genre == '*') || ($(img).data('genre').indexOf(genre) >= 0))
+						){
+							$(img).show();
+							showed++;
 						}
-						else {
-							$('#nothing').hide();
-						}
+					});
+					
+					// If no movie matches the criteria, display a warning
+					if(showed == 0){
+						$('#nothing').show();
+					}
+					else {
+						$('#nothing').hide();
 					}
 				});
-
-				// Handle a click on the IMDb selector button group
-				$('#imdb-selector > button').on('click',function(){
-					// Uncolor the other buttons
-					reset_other_buttons("imdb");
-					$('#imdb-selector > button').each(function(i, btn){
-						$(btn).removeClass('btn-warning');
-						$(btn).addClass('btn-default');
-					});
-
-					// Color this button only
-					$(this).removeClass('btn-default');
-					$(this).addClass('btn-warning');
-
-					// Hide or display movies according to what the user asked
-					var note = parseFloat($(this).data('imdb'));
-					if(note == '*'){
-						// Display all movies
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).is(':hidden')){
-								$(img).show();
-							}
-						});
-					}
-					else {
-						// Hide non-corresponding movies
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).data('imdbrating') < note){
-								if($(img).is(':visible')) {
-									$(img).hide();
-								}
-							}
-						});
-
-						// Display corresponding movies
-						var found = 0;
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).data('imdbrating') >= note){
-								found += 1;
-								if($(img).is(':hidden')) {
-									$(img).show();
-								}
-							}
-						});
-
-						// If no movie matches the criteria, display a warning
-						if(found == 0){
-							$('#nothing').show();
-						}
-						else {
-							$('#nothing').hide();
-						}
-					}
-				});
-
-				// Handle the genre selector button group
-				$('#genre-selector > button').on('click',function(){
-					// Uncolor the other buttons
-					reset_other_buttons("genre");
-					$('#genre-selector > button').each(function(i, btn){
-						$(btn).removeClass('btn-success');
-						$(btn).addClass('btn-default');
-					});
-
-					// Color this button only
-					$(this).removeClass('btn-default');
-					$(this).addClass('btn-success');
-
-					// Hide or display movies according to what the user asked
-					var genre = $(this).data('genre');
-					if(genre == '*'){
-						// Display all movies
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).is(':hidden')){
-								$(img).show();
-							}
-						});
-					}
-					else {
-						// Hide non-corresponding movies
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).data('genre').indexOf(genre) < 0){
-								if($(img).is(':visible')) {
-									$(img).hide();
-								}
-							}
-						});
-
-						// Display corresponding movies
-						var found = 0;
-						$('.img-thumbnail').each(function(i, img){
-							if($(img).data('genre').indexOf(genre) >= 0){
-								found += 1;
-								if($(img).is(':hidden')) {
-									$(img).show();
-								}
-							}
-						});
-
-						// If no movie matches the criteria, display a warning
-						if(found == 0){
-							$('#nothing').show();
-						}
-						else {
-							$('#nothing').hide();
-						}
-					}
+			});
+			
+			$(document).ajaxStop(function () {
+				// Populate the genres selector
+				genresAvailable.sort().forEach(function(genre){
+					$('#genre-selector').find('ul').append($('<li>').append($('<a>').attr('href','#').attr('title', '').attr('data-value', genre).text(genre)));
 				});
 			});
 		</script>
@@ -591,39 +526,40 @@
 					<div class="bounce2"></div>
 					<div class="bounce3"></div>
 				</div>
-
-				<div id="runtime-selector" class="buttons-topbar btn-group" role="group" style="display: none;">
-					<button type="button" class="btn btn-danger btn-xs" data-runtime="*"><?php echo translate('ALL'); ?></button>
-					<button type="button" class="btn btn-default btn-xs" data-runtime="90">< 1.5 h</button>
-					<button type="button" class="btn btn-default btn-xs" data-runtime="120">< 2 h</button>
-					<button type="button" class="btn btn-default btn-xs" data-runtime="180">< 3 h</button>
-				</div>
-
-				<div id="imdb-selector" class="buttons-topbar btn-group" role="group" style="display: none;">
-					<button type="button" class="btn btn-warning btn-xs" data-imdb="*"><?php echo translate('ALL'); ?></button>
-					<button type="button" class="btn btn-default btn-xs" data-imdb="9">IMDb > 9</button>
-					<button type="button" class="btn btn-default btn-xs" data-imdb="8">IMDb > 8</button>
-					<button type="button" class="btn btn-default btn-xs" data-imdb="7">IMDb > 7</button>
-					<button type="button" class="btn btn-default btn-xs" data-imdb="6">IMDb > 6</button>
-					<button type="button" class="btn btn-default btn-xs" data-imdb="5">IMDb > 5</button>
-				</div>
-
-				<div id="genre-selector" class="buttons-topbar btn-group" role="group" style="display: none;">
-					<button type="button" class="btn btn-success btn-xs" data-genre="*"><?php echo translate('ALL'); ?></button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Adventure">Adventure</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Animation">Animation</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Biography">Biography</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Comedy">Comedy</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Drama">Drama</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Fantasy">Fantasy</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Mystery">Mystery</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Romance">Romance</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Sci-Fi">Sci-Fi</button>
-					<button type="button" class="btn btn-default btn-xs" data-genre="Thriller">Thriller</button>
-				</div>
-
-				<div id="about-div" class="buttons-topbar btn-group" role="group">
-					<button type="button" title="About this app" class="btn btn-info btn-xs" data-toggle="modal" data-target="#about-modal"><strong>?</strong></button>
+				
+				<div id="controls" style="display: none">
+					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-success" data-toggle="modal" data-target="#search-modal" title="<?php echo translate('Search for a movie'); ?>"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> <?php echo translate('Search'); ?></button>
+					
+					<div id="runtime-selector" class="btn-group buttons-topbar big-screens" data-value="*">
+						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by movie length'); ?>"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> <?php echo translate('Runtime'); ?> <span class="caret"></span></button>
+						<ul class="dropdown-menu">
+							<li class="active"><a href="#" title="" data-value="*"><strong><strong><?php echo translate('All'); ?></strong></strong></a></li>
+							<li><a href="#" title="" data-value="90">< 1h30</a></li>
+							<li><a href="#" title="" data-value="120">< 2h</a></li>
+							<li><a href="#" title="" data-value="180">< 3h</a></li>
+						</ul>
+					</div>
+					
+					<div id="imdb-selector" class="btn-group buttons-topbar big-screens" data-value="*">
+						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by IMDb score'); ?>"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> <?php echo translate('IMDb rating'); ?> <span class="caret"></span></button>
+						<ul class="dropdown-menu">
+							<li class="active"><a href="#" title="" data-value="*"><strong><strong><?php echo translate('All'); ?></strong></strong></a></li>
+							<li><a href="#" title="" data-value="9">IMDb > 9</a></li>
+							<li><a href="#" title="" data-value="8">IMDb > 8</a></li>
+							<li><a href="#" title="" data-value="7">IMDb > 7</a></li>
+							<li><a href="#" title="" data-value="6">IMDb > 6</a></li>
+							<li><a href="#" title="" data-value="5">IMDb > 5</a></li>
+						</ul>
+					</div>
+					
+					<div id="genre-selector" class="btn-group buttons-topbar big-screens" data-value="*">
+						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by category'); ?>"><span class="glyphicon glyphicon-th" aria-hidden="true"></span> <?php echo translate('Genre'); ?> <span class="caret"></span></button>
+						<ul class="dropdown-menu">
+							<li class="active"><a href="#" title="" data-value="*" selected><strong><strong><?php echo translate('All'); ?></strong></strong></a></li>
+						</ul>
+					</div>
+					
+					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-info" data-toggle="modal" data-target="#about-modal" title="<?php echo translate('About this app'); ?>"><strong>?</strong></button>
 				</div>
 			</div>
 		</header>
@@ -670,10 +606,11 @@
 				<div class="modal-dialog modal-sm">
 					<div class="modal-content">
 						<div class="modal-body">
-							<p><?php echo translate('Search for a movie...'); ?></p>
+							<h1><span class="glyphicon glyphicon-search" aria-hidden="true"></span> <?php echo translate('Search for a movie'); ?></h1>
 							<div class="form-group">
 								<input type="text" class="form-control" id="search-input" autofocus="autofocus">
 							</div>
+							<p><a href="#" title="<?php echo translate('Close this modal'); ?>" data-dismiss="modal" class="close-search-modal"><?php echo translate('Close'); ?></a></p>
 						</div>
 					</div>
 				</div>
@@ -698,7 +635,7 @@
 
 			<!-- Container for the list of available movies -->
 			<div id="movieList" class="row">
-				<div id="nothing" class="big-error-message"><?php echo translate('No movie matches criteria'); ?></div>
+				<div id="nothing" class="big-error-message"><?php echo translate('No movie matches criteria'); ?><br /><span class="error-message-subtext">(<?php echo translate('Deactivate some filters'); ?>)</span></div>
 				<noscript><div class="big-error-message"><?php echo translate('Benflix needs JavaScript enabled to work.'); ?></div></noscript>
 			</div>
 		</div>
