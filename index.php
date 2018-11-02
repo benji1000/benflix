@@ -30,13 +30,16 @@
 			"Close" => "Fermer",
 			"All" => "Tous",
 			"Search for a movie" => "Rechercher un film",
-			"Close" => "Fermer",
 			"Filter by IMDb score" => "Filtrer par note IMDb",
 			"Filter by movie length" => "Filtrer par durée",
 			"Filter by category" => "Filtrer par catégorie",
 			"About this app" => "À propos de Benflix",
 			"Close this modal" => "Afficher les résultats",
 			"Search" => "Rechercher",
+			"Order by..." => "Trier par...",
+			"Alphabetical" => "Alphabétique",
+			"Date added" => "Ajouts",
+			"Date released" => "Diffusion",
 			"Runtime" => "Durée",
 			"IMDb rating" => "Note IMDb",
 			"Genre" => "Genre"
@@ -74,7 +77,7 @@
 		$files = Array();
 		foreach($allFiles as $file){
 			if(($file != '.') && ($file != '..') && ($file != basename($_SERVER["PHP_SELF"])) && ($file[0] != '.')){
-				$files[] = $file;
+				$files[] = Array('name' => $file, 'time' => filectime($file));
 			}
 		}
 		return $files;
@@ -279,7 +282,7 @@
 			.dropdown-menu {
 				z-index: 9999;
 				min-width: 0px !important;
-				width: 125px;
+				width: 130px;
 			}
 			.dropdown-menu > li > a > strong {
 				font-variant: all-small-caps;
@@ -316,7 +319,7 @@
 					dataType: 'json',
 					success: function(movieInfo){
 						if(movieInfo.Response == 'True'){
-							$('#movieList').append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-file="'+fileName+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
+							$('#movieList').append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+id+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+new Date(changeTime*1000)+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
 						
 							// Set an array of available genres
 							var genres = movieInfo.Genre.split(', ');
@@ -365,15 +368,15 @@
 				}
 				else {
 					// Request all movies available on the server at page load
-					$.ajax({
+					var promise = $.ajax({
 						url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
 						type : 'POST',
 						data : 'action=getAvailableMovies',
 						dataType: 'json',
 						success : function(fileList, status){
 							var id = 0;
-							fileList.forEach(function(filename){
-								getMovieInfo(filename);
+							fileList.forEach(function(file){
+								getMovieInfo(file.name, file.time, id);
 								id++;
 							});
 						},
@@ -455,6 +458,10 @@
 					var id = button.attr('id');
 					var icon = '';
 					switch(id) {
+						case 'order-selector':
+							icon = '<span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>';
+							defaultText = '<?php echo translate('Order by...'); ?>';
+							break;
 						case 'runtime-selector':
 							icon = '<span class="glyphicon glyphicon-time" aria-hidden="true"></span>';
 							defaultText = '<?php echo translate('Runtime'); ?>';
@@ -468,32 +475,58 @@
 							defaultText = 'Genre';
 							break;
 					}
-					if(value != '*'){
-						button.find('.dropdown-toggle').html(icon + ' ' + text + ' <span class="caret"></span>').addClass('btn-warning');
+					if((value == '*') || (value == 'title')){
+						button.find('.dropdown-toggle').html(icon + ' ' + defaultText + ' <span class="caret"></span>').removeClass('btn-warning');
 					}
 					else {
-						button.find('.dropdown-toggle').html(icon + ' ' + defaultText + ' <span class="caret"></span>').removeClass('btn-warning');
+						button.find('.dropdown-toggle').html(icon + ' ' + text + ' <span class="caret"></span>').addClass('btn-warning');
 					}
 					button.data('value', value);
 					
-					// Highlight the entry and get the values of ALL dropdowns
+					// Get the values of ALL dropdowns
 					var runtime = $('#runtime-selector').data('value');
 					var imdb = $('#imdb-selector').data('value');
 					var genre = $('#genre-selector').data('value');
+					var order = $('#order-selector').data('value');
 					
-					// Hide all movies then display only relevant ones
+					// Hide all movies then pick only relevant ones
 					var showed = 0;
+					var movies = new Array();
 					$('.img-thumbnail').each(function(i, img){
 						$(img).hide();
-						console.log($(img).data('file'), $(img).data('runtime'), $(img).data('imdbrating'), $(img).data('genre'));
 						if(
 							((runtime == '*') || ($(img).data('runtime') <= runtime))
 							&& ((imdb == '*') || ($(img).data('imdbrating') >= imdb))
 							&& ((genre == '*') || ($(img).data('genre').indexOf(genre) >= 0))
 						){
-							$(img).show();
+							movies.push({characteristic:$(img).data(order),id:$(img).data('id')});
 							showed++;
 						}
+					});
+					
+					// Order relevant movies according to what the user asked
+					if(order == 'title'){
+						movies.sort(function(a,b){
+							if (a.characteristic < b.characteristic){
+								return -1;
+							}
+							if (a.characteristic > b.characteristic){
+								return 1;
+							}
+							return 0;
+						});
+					}
+					else {
+						movies.sort(function(a,b) {
+							return new Date(b.characteristic).getTime() - new Date(a.characteristic).getTime();
+						});
+					}
+					
+					// Show relevant movies according to what the user asked
+					movies.forEach(function(movie){
+						var img = $('.img-thumbnail[data-id='+movie.id+']');
+						$('#movieList').append(img);
+						img.show();
 					});
 					
 					// If no movie matches the criteria, display a warning
@@ -530,6 +563,15 @@
 				<div id="controls" style="display: none">
 					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-success" data-toggle="modal" data-target="#search-modal" title="<?php echo translate('Search for a movie'); ?>"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> <?php echo translate('Search'); ?></button>
 					
+					<div id="order-selector" class="btn-group buttons-topbar" data-value="title">
+						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Order by...'); ?>"><span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span> <?php echo translate('Order by...'); ?> <span class="caret"></span></button>
+						<ul class="dropdown-menu">
+							<li class="active"><a href="#" title="" data-value="title"><?php echo translate('Alphabetical'); ?></a></li>
+							<li><a href="#" title="" data-value="added"><?php echo translate('Date added'); ?></a></li>
+							<li><a href="#" title="" data-value="released"><?php echo translate('Date released'); ?></a></li>
+						</ul>
+					</div>
+					
 					<div id="runtime-selector" class="btn-group buttons-topbar big-screens" data-value="*">
 						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by movie length'); ?>"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> <?php echo translate('Runtime'); ?> <span class="caret"></span></button>
 						<ul class="dropdown-menu">
@@ -543,7 +585,7 @@
 					<div id="imdb-selector" class="btn-group buttons-topbar big-screens" data-value="*">
 						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by IMDb score'); ?>"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> <?php echo translate('IMDb rating'); ?> <span class="caret"></span></button>
 						<ul class="dropdown-menu">
-							<li class="active"><a href="#" title="" data-value="*"><strong><strong><?php echo translate('All'); ?></strong></strong></a></li>
+							<li class="active"><a href="#" title="" data-value="*"><strong><?php echo translate('All'); ?></strong></a></li>
 							<li><a href="#" title="" data-value="9">IMDb > 9</a></li>
 							<li><a href="#" title="" data-value="8">IMDb > 8</a></li>
 							<li><a href="#" title="" data-value="7">IMDb > 7</a></li>
