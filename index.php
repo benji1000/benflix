@@ -118,7 +118,7 @@
 		<meta name="author" lang="fr" content="benji1000">
 
 		<link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
-		<script src="//code.jquery.com/jquery-latest.min.js"></script>
+		<script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
 		<script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
 		<link rel="icon" href="data:image/x-icon;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAyklEQVQ4jcWSyw2DMBBEX6IUQAURJVBBBB1QQT6XaQNRAfc9pgI6gFQASgVRKqCEHDCR5UTAjZFWXq/X4/FoYWvswoKkK3AJygPwAGoze/kH+z+kRyANIgcqoJMULxFM6IHMReFqEXD2mw4zBIOZtS5vJd2AOGyaI4gkpS4/eZefawkSoPEVAZWZ1X7TnAcD0Lp4Mf6/lJSvVdCbWTZtJHVOVQF8Vcwp+CF0a7JWgW9izDgL+K8vEYQmwuhLuUTwZjQuRAPcw1HeHh8kSTJnDU8pPQAAAABJRU5ErkJggg=="/>
 		
