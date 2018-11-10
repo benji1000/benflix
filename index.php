@@ -36,7 +36,7 @@
 			"About this app" => "À propos de Benflix",
 			"Close this modal" => "Afficher les résultats",
 			"Search" => "Rechercher",
-			"Order by..." => "Trier par...",
+			"Order by" => "Trier par",
 			"Alphabetical" => "Alphabétique",
 			"Date added" => "Ajouts",
 			"Date released" => "Diffusion",
@@ -190,6 +190,7 @@
 				width: 210px !important;
 				margin: 12px;
 				transition: all 0.5s ease;
+				padding: 2px;
 				opacity: 0.8;
 			}
 			.img-thumbnail:hover {
@@ -252,7 +253,7 @@
 			.nav-bar {
 				margin-right: auto;
 				margin-left: auto;
-				padding: 5px 30px;
+				padding: 5px 15px;
 				width: 100%;
 				top: 0;
 				position: fixed;
@@ -460,7 +461,7 @@
 					switch(id) {
 						case 'order-selector':
 							icon = '<span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span>';
-							defaultText = '<?php echo translate('Order by...'); ?>';
+							defaultText = '<?php echo translate('Order by'); ?>';
 							break;
 						case 'runtime-selector':
 							icon = '<span class="glyphicon glyphicon-time" aria-hidden="true"></span>';
@@ -561,10 +562,10 @@
 				</div>
 				
 				<div id="controls" style="display: none">
-					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-success" data-toggle="modal" data-target="#search-modal" title="<?php echo translate('Search for a movie'); ?>"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> <?php echo translate('Search'); ?></button>
+					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-success" data-toggle="modal" data-target="#search-modal" title="<?php echo translate('Search for a movie'); ?>"> <span class="glyphicon glyphicon-search" aria-hidden="true"></span> </button>
 					
 					<div id="order-selector" class="btn-group buttons-topbar" data-value="title">
-						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Order by...'); ?>"><span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span> <?php echo translate('Order by...'); ?> <span class="caret"></span></button>
+						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Order by'); ?>"><span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span> <?php echo translate('Order by'); ?> <span class="caret"></span></button>
 						<ul class="dropdown-menu">
 							<li class="active"><a href="#" title="" data-value="title"><?php echo translate('Alphabetical'); ?></a></li>
 							<li><a href="#" title="" data-value="added"><?php echo translate('Date added'); ?></a></li>
@@ -601,7 +602,7 @@
 						</ul>
 					</div>
 					
-					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-info" data-toggle="modal" data-target="#about-modal" title="<?php echo translate('About this app'); ?>"><strong>?</strong></button>
+					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-info" data-toggle="modal" data-target="#about-modal" title="<?php echo translate('About this app'); ?>"><strong> ? </strong></button>
 				</div>
 			</div>
 		</header>
