@@ -73,7 +73,7 @@
 	if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && !empty($_POST['action'])){
 		switch($_POST['action']){
 			case 'getAvailableMovies':
-				die(json_encode(utf8ize(get_video_files()));
+				die(json_encode(utf8ize(get_video_files())));
 				break;
 			case 'getMovieInfo':
 				die(get_movie_info($_POST['movieName']));
