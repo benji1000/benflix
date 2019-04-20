@@ -556,6 +556,9 @@
 				genresAvailable.sort().forEach(function(genre){
 					$('#genre-selector').find('ul').append($('<li>').append($('<a>').attr('href','#').attr('title', '').attr('data-value', genre).text(genre)));
 				});
+
+				// Sort movies by date of release by default
+				$('.dropdown-menu > li > a[data-value="released"]').trigger('click')
 			});
 		</script>
 	</head>
