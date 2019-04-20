@@ -15,7 +15,7 @@
 			"Go to the IMDb page" => "Voir la fiche sur IMDb",
 			"Watch the trailer on YouTube" => "Voir la bande-annonce",
 			"Download the movie" => "Télécharger le film",
-			"You can play the movie before its downloaded<br />by opening the .part or .crdownload file with VLC." => "Vous pouvez lire le film avant la fin du téléchargement<br />en ouvrant le fichier .part ou .crdownload avec VLC.",
+			"You can stream the movie by copying the link of the \"Download\" button,<br />opening VLC, pressing Ctrl+V, and then clicking \"Play\"." => "Vous pouvez streamer le film en copiant le lien du bouton \"Télécharger\",<br />en ouvrant VLC, en appuyant sur Ctrl+V puis sur \"Lire\".",
 			"Genre:" => "Genre :",
 			"Runtime:" => "Durée :",
 			"Directed by:" => "Réalisé par :",
@@ -645,7 +645,7 @@
 											<p><a id="modal-imdbLink" href="" title="<?php echo translate('Go to the IMDb page'); ?>" target="_blank" type="button" class="btn btn-warning btn-lg"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> <?php echo translate('Go to the IMDb page'); ?></a></p>
 											<p><a id="modal-trailerLink" href="" title="<?php echo translate('Watch the trailer on YouTube'); ?>" target="_blank" type="button" class="btn btn-danger btn-lg"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> <?php echo translate('Watch the trailer on YouTube'); ?></a></p>
 											<p><a id="modal-fileLink" href="" title="<?php echo translate('Download the movie'); ?>" type="button" class="btn btn-success btn-lg"><span class="glyphicon glyphicon-save" aria-hidden="true"></span> <?php echo translate('Download the movie'); ?></a></p>
-											<p><em><?php echo translate('You can play the movie before its downloaded<br />by opening the .part or .crdownload file with VLC.'); ?></em></p>
+											<p><em><?php echo translate('You can stream the movie by copying the link of the "Download" button,<br />opening VLC, pressing Ctrl+V, and then clicking "Play".'); ?></em></p>
 										</div>
 									</div>
 								</div>
