@@ -435,7 +435,7 @@
 				});
 
 				// Enable search when pressing Ctrl+F
-				$(window).keypress(function(event){
+				$(document).keydown(function(event){
 				    if (!(event.which == 115 && event.ctrlKey) && !(String.fromCharCode(event.which).toLowerCase() == 'f')) return true;
 				    $('.modal').not('#search-modal').modal('hide');
 					$('#search-modal').modal('toggle');
