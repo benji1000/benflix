@@ -15,7 +15,7 @@
 			"Go to the IMDb page" => "Voir la fiche sur IMDb",
 			"Watch the trailer on YouTube" => "Voir la bande-annonce",
 			"Download the movie" => "Télécharger le film",
-			"You can stream the movie by copying the link of the \"Download\" button,<br />opening VLC, pressing Ctrl+V, and then clicking \"Play\"." => "Vous pouvez streamer le film en copiant le lien du bouton \"Télécharger\",<br />en ouvrant VLC, en appuyant sur Ctrl+V puis sur \"Lire\".",
+			"You can stream the movie by copying the link of the \"Download\" button,<br />opening VLC, pressing Ctrl+V, and then clicking \"Play\"." => "Lisez le film en streaming en copiant le lien du bouton \"Télécharger\",<br />en appuyant sur Ctrl+V dans VLC puis sur \"Lire\".",
 			"Genre:" => "Genre :",
 			"Runtime:" => "Durée :",
 			"Directed by:" => "Réalisé par :",
@@ -203,6 +203,7 @@
 				margin: 12px;
 				transition: all 0.5s ease;
 				opacity: 0.8;
+				padding: 2px;
 			}
 			.img-thumbnail:hover {
 				opacity: 1;
@@ -291,6 +292,9 @@
 				margin-left: 10px;
 				margin-top: 9px;
 			}
+			.glyphicon-search {
+				padding: 3px 6px;
+			}
 			.dropdown-menu {
 				z-index: 9999;
 				min-width: 0px !important;
@@ -303,6 +307,28 @@
 			@media (max-width: 725px){
 				.big-screens {
 					display: none;
+				}
+				
+				.btn-group-xs > .btn, .btn-xs {
+					padding: 5px 10px;
+					font-size: 14px;
+				}
+				
+				.buttons-topbar {
+					margin-top: 3px;
+				}
+				
+				.nav-bar {
+					padding: 5px 10px;
+				}
+				
+				#extended-infos p {
+					padding-top: 10px;
+				}
+				
+				#extended-infos .btn-lg {
+					padding: 5px 10px;
+					font-size: 16px;
 				}
 			}
 			@media (max-width: 992px){
@@ -576,11 +602,11 @@
 				</div>
 				
 				<div id="controls" style="display: none">
-					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-success" data-toggle="modal" data-target="#search-modal" title="<?php echo translate('Search for a movie'); ?>"><span class="glyphicon glyphicon-search" aria-hidden="true"></span> <?php echo translate('Search'); ?></button>
+					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-success" data-toggle="modal" data-target="#search-modal" title="<?php echo translate('Search for a movie'); ?>"><span class="glyphicon glyphicon-search" aria-hidden="true"></span></button>
 					
 					<div id="order-selector" class="btn-group buttons-topbar" data-value="title">
 						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Order by...'); ?>"><span class="glyphicon glyphicon-sort-by-attributes-alt" aria-hidden="true"></span> <?php echo translate('Order by...'); ?> <span class="caret"></span></button>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu dropdown-menu-right">
 							<li class="active"><a href="#" title="" data-value="title"><?php echo translate('Alphabetical'); ?></a></li>
 							<li><a href="#" title="" data-value="added"><?php echo translate('Date added'); ?></a></li>
 							<li><a href="#" title="" data-value="released"><?php echo translate('Date released'); ?></a></li>
@@ -589,7 +615,7 @@
 					
 					<div id="runtime-selector" class="btn-group buttons-topbar big-screens" data-value="*">
 						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by movie length'); ?>"><span class="glyphicon glyphicon-time" aria-hidden="true"></span> <?php echo translate('Runtime'); ?> <span class="caret"></span></button>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu dropdown-menu-right">
 							<li class="active"><a href="#" title="" data-value="*"><strong><strong><?php echo translate('All'); ?></strong></strong></a></li>
 							<li><a href="#" title="" data-value="90">< 1h30</a></li>
 							<li><a href="#" title="" data-value="120">< 2h</a></li>
@@ -599,7 +625,7 @@
 					
 					<div id="imdb-selector" class="btn-group buttons-topbar big-screens" data-value="*">
 						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by IMDb score'); ?>"><span class="glyphicon glyphicon-star" aria-hidden="true"></span> <?php echo translate('IMDb rating'); ?> <span class="caret"></span></button>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu dropdown-menu-right">
 							<li class="active"><a href="#" title="" data-value="*"><strong><?php echo translate('All'); ?></strong></a></li>
 							<li><a href="#" title="" data-value="9">IMDb > 9</a></li>
 							<li><a href="#" title="" data-value="8">IMDb > 8</a></li>
@@ -611,12 +637,12 @@
 					
 					<div id="genre-selector" class="btn-group buttons-topbar big-screens" data-value="*">
 						<button type="button" class="btn btn-default dropdown-toggle btn-xs" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="<?php echo translate('Filter by category'); ?>"><span class="glyphicon glyphicon-th" aria-hidden="true"></span> <?php echo translate('Genre'); ?> <span class="caret"></span></button>
-						<ul class="dropdown-menu">
+						<ul class="dropdown-menu dropdown-menu-right">
 							<li class="active"><a href="#" title="" data-value="*" selected><strong><strong><?php echo translate('All'); ?></strong></strong></a></li>
 						</ul>
 					</div>
 					
-					<button type="button" class="btn btn-default buttons-topbar btn-xs btn-info" data-toggle="modal" data-target="#about-modal" title="<?php echo translate('About this app'); ?>"><strong>?</strong></button>
+					<button type="button" class="btn btn-default buttons-topbar big-screens btn-xs btn-info" data-toggle="modal" data-target="#about-modal" title="<?php echo translate('About this app'); ?>"><strong>?</strong></button>
 				</div>
 			</div>
 		</header>
@@ -645,7 +671,7 @@
 											<p><a id="modal-imdbLink" href="" title="<?php echo translate('Go to the IMDb page'); ?>" target="_blank" type="button" class="btn btn-warning btn-lg"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> <?php echo translate('Go to the IMDb page'); ?></a></p>
 											<p><a id="modal-trailerLink" href="" title="<?php echo translate('Watch the trailer on YouTube'); ?>" target="_blank" type="button" class="btn btn-danger btn-lg"><span class="glyphicon glyphicon-new-window" aria-hidden="true"></span> <?php echo translate('Watch the trailer on YouTube'); ?></a></p>
 											<p><a id="modal-fileLink" href="" title="<?php echo translate('Download the movie'); ?>" type="button" class="btn btn-success btn-lg"><span class="glyphicon glyphicon-save" aria-hidden="true"></span> <?php echo translate('Download the movie'); ?></a></p>
-											<p><em><?php echo translate('You can stream the movie by copying the link of the "Download" button,<br />opening VLC, pressing Ctrl+V, and then clicking "Play".'); ?></em></p>
+											<p class="big-screens"><em><?php echo translate('You can stream the movie by copying the link of the "Download" button,<br />opening VLC, pressing Ctrl+V, and then clicking "Play".'); ?></em></p>
 										</div>
 									</div>
 								</div>
