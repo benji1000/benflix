@@ -101,8 +101,15 @@
 		if($movieName == '50-50'){
 			$movieName = '50/50';
 		}
-		$movieName = rawurlencode($movieName);
-		$json = get_url_contents('http://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieName.'&r=json');
+
+		// When the year is specified between parenthesis in the filename, perform a search with the year
+		if(preg_match('/(.+)\s\(([0-9]+)\)/', $movieName, $matches)){
+			$json = get_url_contents('http://www.omdbapi.com/?apikey='.API_KEY.'&t='.$matches[1].'&y='.$matches[2].'&r=json');
+		}
+		else {
+			$movieName = rawurlencode($movieName);
+			$json = get_url_contents('http://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieName.'&r=json');
+		}
 		return $json;
 	}
 
