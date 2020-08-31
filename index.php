@@ -29,7 +29,7 @@
 			"The project page on Github" => "La page du projet sur Github",
 			"Close" => "Fermer",
 			"All" => "Tous",
-			"Search for a movie" => "Rechercher un film",
+			"Search for a movie" => "Rechercher un film (titre VO)",
 			"Filter by IMDb score" => "Filtrer par note IMDb",
 			"Filter by movie length" => "Filtrer par durée",
 			"Filter by category" => "Filtrer par catégorie",
