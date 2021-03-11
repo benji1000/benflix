@@ -445,7 +445,7 @@
 					$("#modal-actors").text($(this).data('actors'));
 					$("#modal-imdbLink").attr('href', 'http://www.imdb.com/title/'+$(this).data('imdbid'));
 					$("#modal-trailerLink").attr('href', 'https://www.youtube.com/results?search_query=' + encodeURI($(this).data('title')) + ' trailer vost');
-					$("#modal-fileLink").attr('href', '/Films/'+$(this).data('file'));
+					$("#modal-fileLink").attr('href', window.location.pathname+$(this).data('file'));
 
 					// Display the rating in a Bootstrap label
 					var htmlRating = '';
