@@ -51,7 +51,7 @@ Configuration
 
 You can change the language of the UI at the very beginning of the file, where the `LANGUAGE` constant is being set. There has to be a subarray corresponding to your language in the `$i18n` array though. More languages will be added with time (feel free to contribute to it!).
 
-You can also set some options if you want, like the page title, and the "recently added" functionnality.
+You can also set some options if you want, like the page title, the movies default ordering, and the "recently added" functionnality.
 
 How does it work ?
 ------------------

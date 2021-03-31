@@ -13,13 +13,19 @@
 	// The title of the page
 	define("PAGE_TITLE", "Benflix");
 
+	// Default ordering of movies
+	// Possible values: "title", "added" or "released".
+	// The date when a file was added to the collection is defined by its inode change time.
+	// This parameter is currently set to "released" by default.
+	define("DEFAULT_ORDERING", "released");
+
 	// The number of days in the past after which a movie added to the collection is considered "recent".
 	// If superior to 0, the page will be divided in two blocks:
 	//     - The first block will contain the latest movies added to the collection.
 	//     - The second block will contain all other movies.
 	// The date when a file was added to the collection is defined by its inode change time.
 	// This parameter is currently set to 0 by default, meaning the classic display of only one block is used.
-	define("RECENTLY_ADDED_DAYS", "15");
+	define("RECENTLY_ADDED_DAYS", "0");
 
 	// The array containing all languages strings
 	// Feel free to add another subarray for your language
@@ -668,8 +674,8 @@
 					$('#genre-selector').find('ul').append($('<li>').append($('<a>').attr('href','#').attr('title', '').attr('data-value', genre).text(genre)));
 				});
 
-				// Sort movies by date of release by default
-				$('.dropdown-menu > li > a[data-value="released"]').trigger('click');
+				// Movies default ordering
+				$('.dropdown-menu > li > a[data-value="<?php echo DEFAULT_ORDERING; ?>"]').trigger('click');
 
 				// Hide the spinner and show the filters
 				$('.spinner').fadeOut('slow', function(){
