@@ -33,7 +33,7 @@ Requirements
 To **install**, Benflix requires:
 * PHP with the cURL extension enabled.
 * The video files must be named with the official English title that can be found on IMDb.
-* A free API key for the [OMDb API](http://www.omdbapi.com/).
+* A free API key for the [OMDb API](https://www.omdbapi.com/).
 
 To **use**, Benflix requires:
 * Access to the Internet.
@@ -42,14 +42,16 @@ To **use**, Benflix requires:
 Installation
 ------------------
 
-Get a free API key from [this page](http://www.omdbapi.com/apikey.aspx): it will be sent to your email, you then have to put it on line 8 of the file.
+Get a free API key from [this page](https://www.omdbapi.com/apikey.aspx): it will be sent to your email, you then have to put it on line 8 of `index.php`.
 
-Just put the `index.php` file in the folder containing all your video files. That's it!
+Then, just put the `index.php` file in the folder containing all your video files. That's it!
 
 Configuration
 ------------------
 
 You can change the language of the UI at the very beginning of the file, where the `LANGUAGE` constant is being set. There has to be a subarray corresponding to your language in the `$i18n` array though. More languages will be added with time (feel free to contribute to it!).
+
+You can also set some options if you want, like the page title, and the "recently added" functionnality.
 
 How does it work ?
 ------------------

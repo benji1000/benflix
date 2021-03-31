@@ -1,10 +1,25 @@
 <?php
-	// Change the language of the UI here
-	define("LANGUAGE", "en");
+	/////////////////////////////////////////////////////////////////////////////////////
+	//// Welcome! Below you can find some options to customize the look of the page. ////
+	/////////////////////////////////////////////////////////////////////////////////////
 	
 	// You have to get an API key from the OMDb API (it's free, you only have to provide a working email address).
 	// You can register for an API key here: https://www.omdbapi.com/apikey.aspx and insert it below.
 	define("API_KEY", "PLACE_YOUR_API_KEY_HERE");
+
+	// Change the language of the UI here
+	define("LANGUAGE", "en");
+
+	// The title of the page
+	define("PAGE_TITLE", "Benflix");
+
+	// The number of days in the past after which a movie added to the collection is considered "recent".
+	// If superior to 0, the page will be divided in two blocks:
+	//     - The first block will contain the latest movies added to the collection.
+	//     - The second block will contain all other movies.
+	// The date when a file was added to the collection is defined by its inode change time.
+	// This parameter is currently set to 0 by default, meaning the classic display of only one block is used.
+	define("RECENTLY_ADDED_DAYS", "15");
 
 	// The array containing all languages strings
 	// Feel free to add another subarray for your language
@@ -43,9 +58,15 @@
 			"Date released" => "Diffusion",
 			"Runtime" => "Durée",
 			"IMDb rating" => "Note IMDb",
-			"Genre" => "Genre"
+			"Genre" => "Genre",
+			"Recently added" => "Ajoutés récemment",
+			"All movies" => "Tous les films",
 		)
 	);
+
+	/////////////////////////////////////////////////////////////////////
+	//// STOP! You shouldn't need to edit anything below this point. ////
+	/////////////////////////////////////////////////////////////////////
 
 	// Returns the translated string if it exists (or the English string otherwise)
 	function translate($string){
@@ -132,7 +153,7 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Benflix</title>
+		<title><?php echo PAGE_TITLE; ?></title>
 		<meta name=viewport content="width=device-width, initial-scale=1, user-scalable=no">
 		<meta name="author" lang="fr" content="benji1000">
 
@@ -149,7 +170,29 @@
 			#wall {
 				width: 100%;
 				text-align: center;
-				padding-top: 60px;
+				padding: 60px 30px 30px 30px;
+			}
+			body h2:first-of-type{
+				margin-top: 10px;
+			}
+			h2 {
+				font-size: 26px;
+				color: #555;
+				text-align: left;
+				display: flex;
+				align-items: center;
+			}
+			h2::after {
+				content: '';
+				flex: 1;
+				margin-left: 1rem;
+				height: 1px;
+				background-color: #555;
+			}
+			h2 > span {
+				font-size: 24px;
+				margin-right: 10px;
+				margin-bottom: 5px;
 			}
 
 			/* SPINNER */
@@ -350,6 +393,13 @@
 				#modal-poster {
 					display: none;
 				}
+
+				h2 {
+					font-size: 20px;
+				}
+				h2 > span {
+					font-size: 18px;
+				}
 			}
 		</style>
 
@@ -364,7 +414,33 @@
 					dataType: 'json',
 					success: function(movieInfo){
 						if(movieInfo.Response == 'True'){
-							$('#movieList').append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+id+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-plot="'+movieInfo.Plot+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+new Date(changeTime*1000)+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
+							var recentlyAddedNumberOfDays = "<?php echo RECENTLY_ADDED_DAYS; ?>";
+
+							// Showcase the most recently added movies
+							if(parseInt(recentlyAddedNumberOfDays) > 0){
+								var dateAdded = new Date(changeTime*1000);
+								var recentMoviesDate = new Date();
+								recentMoviesDate.setDate(recentMoviesDate.getDate()-parseInt(recentlyAddedNumberOfDays));
+
+								if(dateAdded > recentMoviesDate){
+									var container = $('#recentMovieList');
+									if($('#recentMovieList > img.img-thumbnail').length == 0){
+										$('#recentMovieList').prepend('<h2><span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span> <?php echo translate('Recently added'); ?></h2>');
+										$("#recentMovieList h2").hide().fadeIn();
+									}
+								}
+								else {
+									var container = $('#movieList');
+									if($('#movieList > img.img-thumbnail').length == 0){
+										$('#movieList').prepend('<h2><span class="glyphicon glyphicon-film" aria-hidden="true"></span> <?php echo translate('All movies'); ?></h2>');
+										$("#movieList h2").hide().fadeIn();
+									}
+								}
+							}
+							else{
+								var container = $('#movieList');
+							}
+							container.append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+id+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-plot="'+movieInfo.Plot+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+dateAdded+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
 						
 							// Set an array of available genres
 							var genres = movieInfo.Genre.split(', ');
@@ -430,14 +506,9 @@
 						}
 					});
 				}
-				
-				// Hide the spinner and show the filters
-				$('.spinner').fadeOut('slow', function() {
-					$('#controls').fadeIn('fast');
-				});
 
 				// Handle a click on a poster
-				$("#movieList").on('click', '.poster', function(e){
+				$("#wall").on('click', '.poster', function(e){
 					$("#modal-title").html($(this).data('title') + ' <small>' + $(this).data('year') + '</small>');
 					$("#modal-poster").html('<img src="' + $(this).attr('src') + '" alt="" />');
 					$("#modal-genre").text($(this).data('genre'));
@@ -536,52 +607,58 @@
 					var order = $('#order-selector').data('value');
 					
 					// Hide all movies then pick only relevant ones
-					var showed = 0;
-					var movies = new Array();
-					$('.img-thumbnail').each(function(i, img){
-						$(img).hide();
-						if(
-							((runtime == '*') || ($(img).data('runtime') <= runtime))
-							&& ((imdb == '*') || ($(img).data('imdbrating') >= imdb))
-							&& ((genre == '*') || ($(img).data('genre').indexOf(genre) >= 0))
-						){
-							movies.push({characteristic:$(img).data(order),id:$(img).data('id')});
-							showed++;
+					function hideAndPick(container){
+						var showed = 0;
+						var movies = new Array();
+						$('#'+container+' > .img-thumbnail').each(function(i, img){
+							$(img).hide();
+							if(
+								((runtime == '*') || ($(img).data('runtime') <= runtime))
+								&& ((imdb == '*') || ($(img).data('imdbrating') >= imdb))
+								&& ((genre == '*') || ($(img).data('genre').indexOf(genre) >= 0))
+							){
+								movies.push({characteristic:$(img).data(order),id:$(img).data('id')});
+								showed++;
+							}
+						});
+
+						// Order relevant movies according to what the user asked
+						if(order == 'title'){
+							movies.sort(function(a,b){
+								if (a.characteristic < b.characteristic){
+									return -1;
+								}
+								if (a.characteristic > b.characteristic){
+									return 1;
+								}
+								return 0;
+							});
 						}
-					});
-					
-					// Order relevant movies according to what the user asked
-					if(order == 'title'){
-						movies.sort(function(a,b){
-							if (a.characteristic < b.characteristic){
-								return -1;
-							}
-							if (a.characteristic > b.characteristic){
-								return 1;
-							}
-							return 0;
+						else {
+							movies.sort(function(a,b) {
+								return new Date(b.characteristic).getTime() - new Date(a.characteristic).getTime();
+							});
+						}
+
+						// Show relevant movies according to what the user asked
+						movies.forEach(function(movie){
+							var img = $('#'+container+' > .img-thumbnail[data-id='+movie.id+']');
+							$('#'+container).append(img);
+							img.show();
 						});
-					}
-					else {
-						movies.sort(function(a,b) {
-							return new Date(b.characteristic).getTime() - new Date(a.characteristic).getTime();
-						});
+
+						// If no movie matches the criteria, display a warning
+						if(showed == 0){
+							$('#nothing').show();
+						}
+						else {
+							$('#nothing').hide();
+						}
 					}
 					
-					// Show relevant movies according to what the user asked
-					movies.forEach(function(movie){
-						var img = $('.img-thumbnail[data-id='+movie.id+']');
-						$('#movieList').append(img);
-						img.show();
+					$('#wall > .row').each(function(){
+						hideAndPick(this.id);
 					});
-					
-					// If no movie matches the criteria, display a warning
-					if(showed == 0){
-						$('#nothing').show();
-					}
-					else {
-						$('#nothing').hide();
-					}
 				});
 			});
 			
@@ -592,7 +669,17 @@
 				});
 
 				// Sort movies by date of release by default
-				$('.dropdown-menu > li > a[data-value="released"]').trigger('click')
+				$('.dropdown-menu > li > a[data-value="released"]').trigger('click');
+
+				// Hide the spinner and show the filters
+				$('.spinner').fadeOut('slow', function(){
+					$('#controls').fadeIn('fast');
+				});
+
+				// Hide the movie list header if there are no recently added movies
+				if($('#recentMovieList .img-thumbnail').length == 0){
+					$('#movieList h2').fadeOut();
+				}
 			});
 		</script>
 	</head>
@@ -724,6 +811,9 @@
 					</div>
 				</div>
 			</div>
+
+			<!-- Container for the list of recent movies, will only populate if configured in the options -->
+			<div id="recentMovieList" class="row"></div>
 
 			<!-- Container for the list of available movies -->
 			<div id="movieList" class="row">
