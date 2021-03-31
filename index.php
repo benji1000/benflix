@@ -17,6 +17,7 @@
 			"Download the movie" => "Télécharger le film",
 			"You can stream the movie by copying the link of the \"Download\" button,<br />opening VLC, pressing Ctrl+V, and then clicking \"Play\"." => "Lisez le film en streaming en copiant le lien du bouton \"Télécharger\",<br />en appuyant sur Ctrl+V dans VLC puis sur \"Lire\".",
 			"Genre:" => "Genre :",
+			"Plot:" => "Synopsis :",
 			"Runtime:" => "Durée :",
 			"Directed by:" => "Réalisé par :",
 			"With:" => "Avec :",
@@ -363,7 +364,7 @@
 					dataType: 'json',
 					success: function(movieInfo){
 						if(movieInfo.Response == 'True'){
-							$('#movieList').append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+id+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+new Date(changeTime*1000)+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
+							$('#movieList').append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+id+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-plot="'+movieInfo.Plot+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+new Date(changeTime*1000)+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
 						
 							// Set an array of available genres
 							var genres = movieInfo.Genre.split(', ');
@@ -440,6 +441,7 @@
 					$("#modal-title").html($(this).data('title') + ' <small>' + $(this).data('year') + '</small>');
 					$("#modal-poster").html('<img src="' + $(this).attr('src') + '" alt="" />');
 					$("#modal-genre").text($(this).data('genre'));
+					$("#modal-plot").text($(this).data('plot'));
 					$("#modal-director").text($(this).data('director'));
 					$("#modal-actors").text($(this).data('actors'));
 					$("#modal-imdbLink").attr('href', 'http://www.imdb.com/title/'+$(this).data('imdbid'));
@@ -670,6 +672,7 @@
 									<div class="col-md-7">
 										<p><strong><?php echo translate('Genre:'); ?></strong> <span id="modal-genre"></span><br />
 										<strong><?php echo translate('Runtime:'); ?></strong> <span id="modal-runtime"></span></p>
+										<p><strong><?php echo translate('Plot:'); ?></strong> <span id="modal-plot"></span></p>
 										<p><strong><?php echo translate('Directed by:'); ?></strong> <span id="modal-director"></span><br />
 										<strong><?php echo translate('With:'); ?></strong> <span id="modal-actors"></span><br />
 										<strong><?php echo translate('IMDB rating:'); ?></strong> <span id="modal-rating"></span></p>
