@@ -175,21 +175,21 @@
 			body h2:first-of-type{
 				margin-top: 10px;
 			}
-			h2 {
+			#wall > div > h2 {
 				font-size: 26px;
 				color: #555;
 				text-align: left;
 				display: flex;
 				align-items: center;
 			}
-			h2::after {
+			#wall > div > h2::after {
 				content: '';
 				flex: 1;
 				margin-left: 1rem;
 				height: 1px;
 				background-color: #555;
 			}
-			h2 > span {
+			#wall > div > h2 > span {
 				font-size: 24px;
 				margin-right: 10px;
 				margin-bottom: 5px;
