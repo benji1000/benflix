@@ -113,10 +113,19 @@
 	}
 
 	function get_video_files(){
-		$allFiles = scandir("./");
+		// Depending on the setting, list files by name or inode change time
+		if(DEFAULT_ORDERING == 'title'){
+			$sortFunction = 'scandir';
+		}
+		else{
+			$sortFunction = 'filectime';
+		}
+		array_multisort(array_map($sortFunction, ($allFiles = glob("*", GLOB_BRACE))), SORT_DESC, $allFiles);
+
+		// Format and return a proper array
 		$files = Array();
 		foreach($allFiles as $file){
-			if(($file != '.') && ($file != '..') && ($file != basename($_SERVER["PHP_SELF"])) && ($file[0] != '.')){
+			if($file != basename($_SERVER["PHP_SELF"])){
 				$files[] = Array('name' => $file, 'time' => filectime($file));
 			}
 		}
