@@ -182,33 +182,6 @@
 			body {
 				background-color: #171717;
 			}
-			#wall {
-				width: 100%;
-				text-align: center;
-				padding: 60px 30px 30px 30px;
-			}
-			body h2:first-of-type{
-				margin-top: 10px;
-			}
-			#wall > div > h2 {
-				font-size: 26px;
-				color: #555;
-				text-align: left;
-				display: flex;
-				align-items: center;
-			}
-			#wall > div > h2::after {
-				content: '';
-				flex: 1;
-				margin-left: 1rem;
-				height: 1px;
-				background-color: #555;
-			}
-			#wall > div > h2 > span {
-				font-size: 24px;
-				margin-right: 10px;
-				margin-bottom: 5px;
-			}
 
 			/* SPINNER */
 			.spinner {
@@ -248,6 +221,34 @@
 			}
 
 			/* MOVIE LIST */
+			#wall {
+				width: 100%;
+				text-align: center;
+				padding: 60px 15px 30px 15px;
+			}
+			body h2:first-of-type{
+				margin-top: 10px;
+			}
+			#wall > div > h2 {
+				font-size: 26px;
+				color: #555;
+				text-align: left;
+				display: flex;
+				align-items: center;
+				margin: 5px 15px;
+			}
+			#wall > div > h2::after {
+				content: '';
+				flex: 1;
+				margin-left: 1rem;
+				height: 1px;
+				background-color: #555;
+			}
+			#wall > div > h2 > span {
+				font-size: 24px;
+				margin-right: 10px;
+				margin-bottom: 5px;
+			}
 			#nothing {
 				display: none;
 			}
@@ -263,12 +264,12 @@
 				font-size: 35px;
 			}
 			.img-thumbnail {
-				height: 300px !important;
-				width: 210px !important;
-				margin: 12px;
+				height: 300px;
+				width: 210px;
 				transition: all 0.5s ease;
 				opacity: 0.8;
-				padding: 2px;
+				margin: 6px;
+				padding: 1px;
 			}
 			.img-thumbnail:hover {
 				opacity: 1;
@@ -398,11 +399,12 @@
 			}
 			@media (max-width: 992px){
 				.img-thumbnail {
-					height: 140px !important;
-					width: 95px !important;
-					margin: 5px 10px;
+					height: 140px;
+					width: 95px;
 					transition: all 0.5s ease;
 					opacity: 0.8;
+					margin: 3px;
+					padding: 1px;
 				}
 
 				#modal-poster {
@@ -414,6 +416,14 @@
 				}
 				h2 > span {
 					font-size: 18px;
+				}
+				#wall > div > h2 {
+					font-size: 18px;
+				}
+				#wall > div > h2 > span {
+					font-size: 16px;
+					margin-right: 5x;
+					margin-bottom: 3px;
 				}
 			}
 		</style>
@@ -496,6 +506,33 @@
 					$('#nothing').hide();
 				}
 			}
+
+			function calculatePosterWidth(){
+				var windowWidth = window.innerWidth;
+				if(windowWidth < 992){
+					var numberOfPostersPerLine = 4;
+				}
+				else if(windowWidth < 1200){
+					var numberOfPostersPerLine = 8;
+				}
+				else{
+					var numberOfPostersPerLine = 10;
+				}
+				console.log(windowWidth, numberOfPostersPerLine);
+				var wallWidth = $('#wall').width();
+				var posterSeparatorWidth = parseInt($('.img-thumbnail').css('marginLeft'))+parseInt($('.img-thumbnail').css('paddingLeft'));
+				var wallMargins = parseInt($('#wall').css('paddingLeft'))+parseInt($('#wall').css('paddingRight'));
+
+				var posterCalculatedWidth = (wallWidth-wallMargins)/numberOfPostersPerLine - 2*posterSeparatorWidth;
+				var posterCalculatedHeight = posterCalculatedWidth*1.43;
+
+				$('.img-thumbnail').css('width', posterCalculatedWidth+'px');
+				$('.img-thumbnail').css('height', posterCalculatedHeight+'px');
+			}
+
+			$(window).on('load resize', function(){
+				calculatePosterWidth();
+			});
 
 			$(window).load(function() {
 				// Check that the user has an API key
