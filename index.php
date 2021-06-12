@@ -489,7 +489,7 @@
 				var movies = document.getElementsByClassName('img-thumbnail');
 				var found = 0;
 				for(var i = 0; i < movies.length; i++){
-					if(movies.item(i).dataset.title.toLowerCase().search(searchString) < 0){
+					if(movies.item(i).dataset.title.toLowerCase().search(searchString.trim()) < 0){
 						$('.img-thumbnail[data-title="'+movies.item(i).dataset.title+'"]').fadeOut();
 					}
 					else {
@@ -518,7 +518,7 @@
 				else{
 					var numberOfPostersPerLine = 10;
 				}
-				console.log(windowWidth, numberOfPostersPerLine);
+
 				var wallWidth = $('#wall').width();
 				var posterSeparatorWidth = parseInt($('.img-thumbnail').css('marginLeft'))+parseInt($('.img-thumbnail').css('paddingLeft'));
 				var wallMargins = parseInt($('#wall').css('paddingLeft'))+parseInt($('#wall').css('paddingRight'));
