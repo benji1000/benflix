@@ -70,6 +70,13 @@
 		)
 	);
 
+	// The path to the local database file
+	define("LOCAL_DB_FILE", dirname(__FILE__).'/benflix.json');
+
+	// Careful: if set to true, anyone can request the local database file to be purged and rebuilt with a simple web request.
+	// This can cause disturbance for the users, as well as pointlessly take up the server and the API bandwith and resources.
+	define("ALLOW_PURGE_FROM_WEB", false);
+
 	/////////////////////////////////////////////////////////////////////
 	//// STOP! You shouldn't need to edit anything below this point. ////
 	/////////////////////////////////////////////////////////////////////
@@ -97,6 +104,19 @@
 		return $mixed;
 	}
 
+	// Use cURL to retrieve URL content
+	function get_url_contents($url) {
+		$crl = curl_init();
+
+		curl_setopt($crl, CURLOPT_URL, $url);
+		curl_setopt($crl, CURLOPT_RETURNTRANSFER, 1);
+		curl_setopt($crl, CURLOPT_CONNECTTIMEOUT, 5);
+
+		$ret = curl_exec($crl);
+		curl_close($crl);
+		return $ret;
+	}
+
 	// Handle Ajax calls
 	if(!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && !empty($_POST['action'])){
 		switch($_POST['action']){
@@ -106,10 +126,73 @@
 			case 'getMovieInfo':
 				die(get_movie_info($_POST['movieName']));
 				break;
+			case 'getServerDatabase':
+				die(get_local_database());
+				break;
 			default:
 				// Do nothing
 				break;
 		}
+	}
+
+	// Update the local database ($argv is for use in CLI mode)
+	if(!empty($_GET['updateLocalDatabase']) OR (!empty($argv[1]) AND ($argv[1] == 'updateLocalDatabase'))){
+		$verbose = ((!empty($_GET['verbose'])) OR (in_array('verbose', $argv)));
+		$purge = ((!empty($_GET['purge'])) OR (in_array('purge', $argv)));
+		$cliRun = defined('STDIN');
+
+		if($cliRun){$separator = "\n";}else{$separator = '<br />';}
+		if($cliRun){$newLine = $separator."----------".$separator;}else{$newLine = '<hr />';}
+
+		// Test if the database exists and can be overwritten
+		if(!test_file_environment($verbose)){
+			exit;
+		}
+		else{
+			if($purge){
+				if($cliRun OR ALLOW_PURGE_FROM_WEB){
+					file_put_contents(LOCAL_DB_FILE, '');
+				}
+				else{
+					if($verbose){echo $separator.'Purge of the database file can only be done from CLI for security reasons.<br />';}
+					if($verbose){echo 'To allow purge from the web, set the ALLOW_PURGE_FROM_WEB constant to true at the beginning of this file.';}
+				}
+			}
+			if($verbose){echo $newLine;}
+		}
+
+		$files = get_video_files();
+		$movies = 0;
+		$newMovies = 0;
+		foreach($files as $file){
+			$movies++;
+			$fileName = $file['name'];
+			if($verbose){echo 'Dealing with file '.$fileName.'...'.$separator;}
+			$movieName = substr($fileName, 0, strrpos($fileName, "."));
+			if(!is_movie_in_database($fileName)){
+				if($verbose){echo 'Movie not found in the local database, querying the OMDb API.'.$separator;}
+				$movieInfo = get_movie_info($movieName);
+				if(json_decode($movieInfo,true)['Response'] == 'True'){
+					if($verbose){echo 'Found info from the API, now saving data to the local database.';}
+					$newMovies++;
+					$result = save_movie_info($file['name'], $movieInfo);
+					if(!$result && $verbose){echo $separator.'Oops, saving this movie\'s info went wrong. Can\'t write to the database file ('.LOCAL_DB_FILE.') maybe?'.$separator;}
+					if(!$result && $verbose){echo 'Quitting for now, solve the situation before running again.'; exit;}
+				}
+				else{
+					if($verbose){echo '<span color="orange">Couldn\'t get the movie info for this movie.';}
+				}
+			}
+			else{
+				if($verbose){echo 'Movie already exists in the database, skipping.';}
+			}
+			if($verbose){echo $newLine;}
+		}
+		if($verbose){echo 'Database was updated and now contains '.$movies.' movies.';}
+		if($verbose AND ($newMovies == 1)){echo ' One new movie was added.';}
+		if($verbose AND ($newMovies > 1)){echo ' '.$newMovies.' new movies were added.';}
+		if($verbose AND $cliRun){echo $separator;}
+		exit;
 	}
 
 	function get_video_files(){
@@ -120,13 +203,14 @@
 		else{
 			$sortFunction = 'filectime';
 		}
-		array_multisort(array_map($sortFunction, ($allFiles = glob("*", GLOB_BRACE))), SORT_DESC, $allFiles);
+		$allFiles = glob(dirname(__FILE__).'/*', GLOB_BRACE);
+		array_multisort(array_map($sortFunction, $allFiles), SORT_DESC, $allFiles);
 
 		// Format and return a proper array
 		$files = Array();
 		foreach($allFiles as $file){
-			if($file != basename($_SERVER["PHP_SELF"])){
-				$files[] = Array('name' => $file, 'time' => filectime($file));
+			if((strpos($file, '.php') === False) AND (strpos($file, '.json') === False)){
+				$files[] = Array('name' => basename($file), 'time' => filectime($file));
 			}
 		}
 		return $files;
@@ -141,25 +225,85 @@
 
 		// When the year is specified between parenthesis in the filename, perform a search with the year
 		if(preg_match('/(.+)\s\(([0-9]+)\)/', $movieName, $matches)){
-			$json = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$matches[1].'&y='.$matches[2].'&r=json');
+			$movieInfo = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$matches[1].'&y='.$matches[2].'&r=json');
 		}
 		else {
-			$movieName = rawurlencode($movieName);
-			$json = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieName.'&r=json');
+			$movieNameEncoded = rawurlencode($movieName);
+			$movieInfo = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieNameEncoded.'&r=json');
 		}
-		return $json;
+
+		return $movieInfo;
 	}
 
-	function get_url_contents($url) {
-		$crl = curl_init();
+	function save_movie_info($fileName, $movieInfo){
+		// Load the local database
+		$jsonDb = file_get_contents(LOCAL_DB_FILE);
 
-		curl_setopt($crl, CURLOPT_URL, $url);
-		curl_setopt($crl, CURLOPT_RETURNTRANSFER, 1);
-		curl_setopt($crl, CURLOPT_CONNECTTIMEOUT, 5);
+		if($jsonDb){
+			// Save data to the local database
+			$arrayDb = json_decode($jsonDb, true);
+			$arrayDb[$fileName] = filter_movie_properties($movieInfo);
+		}
+		else{
+			// The movie is the first to be added to the local database
+			$arrayDb = Array($fileName => filter_movie_properties($movieInfo));
+		}
 
-		$ret = curl_exec($crl);
-		curl_close($crl);
-		return $ret;
+		$result = file_put_contents(LOCAL_DB_FILE, json_encode($arrayDb));
+
+		return $result;
+	}
+
+	function is_movie_in_database($fileName){
+		$jsonDb = file_get_contents(LOCAL_DB_FILE);
+		$exists = false;
+		if($jsonDb){
+			$arrayDb = json_decode($jsonDb, true);
+			if(array_key_exists($fileName, $arrayDb)){
+				$exists = true;
+			}
+		}
+		return $exists;
+	}
+
+	function test_file_environment($verbose){
+		$result = true;
+		if(file_exists(LOCAL_DB_FILE)){
+			if(is_writable(LOCAL_DB_FILE)){
+				if($verbose){echo 'Database file exists and can be overwritten, proceeding.';}
+			}
+			else{
+				if($verbose){echo 'Database file exists but cannot be overwritten, exiting.';}
+				$result = false;
+			}
+		}
+		else {
+			if(touch(LOCAL_DB_FILE)){
+				if($verbose){echo 'Database file did not exist and was created, proceeding.';}
+			}
+			else{
+				if($verbose){echo 'Database file does not exist and cannot be created, exiting.';}
+				$result = false;
+			}
+		}
+		return $result;
+	}
+
+	function is_database_operationnal(){
+		return (bool)file_get_contents(LOCAL_DB_FILE);
+	}
+
+	function get_local_database(){
+		return file_get_contents(LOCAL_DB_FILE);
+	}
+
+	function filter_movie_properties($jsonMovieInfo){
+		$movieInfo = json_decode($jsonMovieInfo);
+		$propertiesToRemove = Array('Rated', 'Writer', 'Language', 'Country', 'Awards', 'Ratings', 'Metascore', 'imdbVotes', 'Type', 'DVD', 'BoxOffice', 'Production', 'Website', 'Response');
+		foreach($propertiesToRemove as $property){
+			unset($movieInfo->$property);
+		}
+		return $movieInfo;
 	}
 
 	// The logo is in base64 so that the file is not dependant on anything
@@ -430,59 +574,73 @@
 
 		<script>
 			var genresAvailable = new Array();
-		
-			function getMovieInfo(fileName, changeTime, id){
-				$.ajax({
-					url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
-					type : 'POST',
-					data : 'action=getMovieInfo&movieName='+encodeURIComponent(fileName.replace(/\.[^/.]+$/, "")),
-					dataType: 'json',
-					success: function(movieInfo){
-						if(movieInfo.Response == 'True'){
-							var recentlyAddedNumberOfDays = "<?php echo RECENTLY_ADDED_DAYS; ?>";
 
-							// Showcase the most recently added movies
-							if(parseInt(recentlyAddedNumberOfDays) > 0){
-								var dateAdded = new Date(changeTime*1000);
-								var recentMoviesDate = new Date();
-								recentMoviesDate.setDate(recentMoviesDate.getDate()-parseInt(recentlyAddedNumberOfDays));
+			function insertMovieInPage(fileName, movieInfo, movieId){
+				var recentlyAddedNumberOfDays = "<?php echo RECENTLY_ADDED_DAYS; ?>";
 
-								if(dateAdded > recentMoviesDate){
-									var container = $('#recentMovieList');
-									if($('#recentMovieList > img.img-thumbnail').length == 0){
-										$('#recentMovieList').prepend('<h2><span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span> <?php echo translate('Recently added'); ?></h2>');
-										$("#recentMovieList h2").hide().fadeIn();
-									}
-								}
-								else {
-									var container = $('#movieList');
-									if($('#movieList > img.img-thumbnail').length == 0){
-										$('#movieList').prepend('<h2><span class="glyphicon glyphicon-film" aria-hidden="true"></span> <?php echo translate('All movies'); ?></h2>');
-										$("#movieList h2").hide().fadeIn();
-									}
-								}
-							}
-							else{
-								var container = $('#movieList');
-							}
-							container.append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+id+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-plot="'+movieInfo.Plot+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+dateAdded+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
-						
-							// Set an array of available genres
-							var genres = movieInfo.Genre.split(', ');
-							genres.forEach(function(genre){
-								if(genresAvailable.indexOf(genre) < 0){
-									genresAvailable.push(genre)
-								}
-							});
+				// Showcase the most recently added movies
+				if(parseInt(recentlyAddedNumberOfDays) > 0){
+					var dateAdded = new Date(changeTime*1000);
+					var recentMoviesDate = new Date();
+					recentMoviesDate.setDate(recentMoviesDate.getDate()-parseInt(recentlyAddedNumberOfDays));
+
+					if(dateAdded > recentMoviesDate){
+						var container = $('#recentMovieList');
+						if($('#recentMovieList > img.img-thumbnail').length == 0){
+							$('#recentMovieList').prepend('<h2><span class="glyphicon glyphicon-pushpin" aria-hidden="true"></span> <?php echo translate('Recently added'); ?></h2>');
+							$("#recentMovieList h2").hide().fadeIn();
 						}
-						else {
-							console.log("Couldn't get the movie info for file: " + fileName);
+					}
+					else {
+						var container = $('#movieList');
+						if($('#movieList > img.img-thumbnail').length == 0){
+							$('#movieList').prepend('<h2><span class="glyphicon glyphicon-film" aria-hidden="true"></span> <?php echo translate('All movies'); ?></h2>');
+							$("#movieList h2").hide().fadeIn();
 						}
-					},
-					error : function(result, status, error){
-						console.log("Couldn't get the movie info for file: " + fileName);
+					}
+				}
+				else{
+					var container = $('#movieList');
+				}
+
+				// Populate the array of available genres
+				var genres = movieInfo.Genre.split(', ');
+				genres.forEach(function(genre){
+					if(genresAvailable.indexOf(genre) < 0){
+						genresAvailable.push(genre)
 					}
 				});
+
+				// Insert the movie info in the page
+				container.append('<img class="img-thumbnail poster" src="'+movieInfo.Poster+'" data-id="movie-'+movieId+'" data-title="'+movieInfo.Title+'" data-file="'+fileName+'" data-plot="'+movieInfo.Plot+'" data-actors="'+movieInfo.Actors+'" data-director="'+movieInfo.Director+'" data-year="'+movieInfo.Year+'" data-released="'+new Date(movieInfo.Released)+'" data-added="'+dateAdded+'" data-runtime="'+parseInt(movieInfo.Runtime)+'" data-title="'+movieInfo.Title+'" data-genre="'+movieInfo.Genre+'" data-imdbid="'+movieInfo.imdbID+'" data-imdbrating="'+movieInfo.imdbRating+'" data-toggle="modal" data-target="#modal" alt="" />');
+			}
+
+			function getMovieInfo(fileName, changeTime, id, serverDatabase){
+				if(Object.keys(serverDatabase).includes(fileName)){
+					// The movie exists in the database, no need to query the API
+					var movieInfo = serverDatabase[fileName];
+					insertMovieInPage(fileName, movieInfo, id);
+				}
+				else {
+					// The movie does not exist in the database, an API query is necessary
+					$.ajax({
+						url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
+						type : 'POST',
+						data : 'action=getMovieInfo&movieName='+encodeURIComponent(fileName.replace(/\.[^/.]+$/, "")),
+						dataType: 'json',
+						success: function(movieInfo){
+							if(movieInfo.Response == 'True'){
+								insertMovieInPage(fileName, movieInfo, id);
+							}
+							else {
+								console.log("Couldn't get the movie info for file: " + fileName);
+							}
+						},
+						error : function(result, status, error){
+							console.log("Couldn't get the movie info for file: " + fileName);
+						}
+					});
+				}
 			}
 
 			function search(searchString){
@@ -530,6 +688,15 @@
 				$('.img-thumbnail').css('height', posterCalculatedHeight+'px');
 			}
 
+			function getServerDatabase(){
+				return $.ajax({
+					url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
+					type : 'POST',
+					data : 'action=getServerDatabase',
+					dataType: 'json'
+				});
+			}
+
 			$(window).on('load resize', function(){
 				calculatePosterWidth();
 			});
@@ -540,8 +707,17 @@
 					alert("<?php echo translate('You need to get an API key for the OMDb API. Don\'t worry, it\'s very simple!\nPlease read the instructions at the top of this file.'); ?>");
 				}
 				else {
-					// Request all movies available on the server at page load
-					var promise = $.ajax({
+					// Check if the database is operationnal
+					var serverDatabase = false;
+					if("<?php echo is_database_operationnal(); ?>" == 1){
+						console.log('Using server database.');
+						getServerDatabase().then(response => {
+							serverDatabase = response;
+						});
+					}
+
+					// Get the movies available and iterate over them
+					$.ajax({
 						url : '<?php echo basename($_SERVER["PHP_SELF"]); ?>',
 						type : 'POST',
 						data : 'action=getAvailableMovies',
@@ -549,7 +725,7 @@
 						success : function(fileList, status){
 							var id = 0;
 							fileList.forEach(function(file){
-								getMovieInfo(file.name, file.time, id);
+								getMovieInfo(file.name, file.time, id, serverDatabase);
 								id++;
 							});
 						},
@@ -569,7 +745,7 @@
 					$("#modal-actors").text($(this).data('actors'));
 					$("#modal-imdbLink").attr('href', 'http://www.imdb.com/title/'+$(this).data('imdbid'));
 					$("#modal-trailerLink").attr('href', 'https://www.youtube.com/results?search_query=' + encodeURI($(this).data('title')) + ' trailer vost');
-					$("#modal-fileLink").attr('href', window.location.pathname+$(this).data('file'));
+					$("#modal-fileLink").attr('href', window.location.href.substring(0, window.location.href.lastIndexOf("/"))+"/"+$(this).data('file'));
 
 					// Display the rating in a Bootstrap label
 					var htmlRating = '';
@@ -732,6 +908,9 @@
 				if($('#recentMovieList .img-thumbnail').length == 0){
 					$('#movieList h2').fadeOut();
 				}
+
+				// Determine the appropriate width of a movie poster
+				calculatePosterWidth();
 			});
 		</script>
 	</head>
