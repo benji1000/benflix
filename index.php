@@ -225,7 +225,8 @@
 
 		// When the year is specified between parenthesis in the filename, perform a search with the year
 		if(preg_match('/(.+)\s\(([0-9]+)\)/', $movieName, $matches)){
-			$movieInfo = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$matches[1].'&y='.$matches[2].'&r=json');
+			$movieNameEncoded = rawurlencode($matches[1]);
+			$movieInfo = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieNameEncoded.'&y='.$matches[2].'&r=json');
 		}
 		else {
 			$movieNameEncoded = rawurlencode($movieName);
