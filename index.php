@@ -15,7 +15,7 @@
 
 	// Default ordering of movies
 	// Possible values: "title", "added" or "released".
-	// The date when a file was added to the collection is defined by its inode change time.
+	// The date when a file was added to the collection is defined by its file modification time.
 	// This parameter is currently set to "released" by default.
 	define("DEFAULT_ORDERING", "released");
 
@@ -23,7 +23,7 @@
 	// If superior to 0, the page will be divided in two blocks:
 	//     - The first block will contain the latest movies added to the collection.
 	//     - The second block will contain all other movies.
-	// The date when a file was added to the collection is defined by its inode change time.
+	// The date when a file was added to the collection is defined by its file modification time.
 	// This parameter is currently set to 0 by default, meaning the classic display of only one block is used.
 	define("RECENTLY_ADDED_DAYS", "0");
 
@@ -196,12 +196,12 @@
 	}
 
 	function get_video_files(){
-		// Depending on the setting, list files by name or inode change time
+		// Depending on the setting, list files by name or file modification time
 		if(DEFAULT_ORDERING == 'title'){
 			$sortFunction = 'scandir';
 		}
 		else{
-			$sortFunction = 'filectime';
+			$sortFunction = 'filemtime';
 		}
 		$allFiles = glob(dirname(__FILE__).'/*', GLOB_BRACE);
 		array_multisort(array_map($sortFunction, $allFiles), SORT_DESC, $allFiles);
@@ -210,7 +210,7 @@
 		$files = Array();
 		foreach($allFiles as $file){
 			if((strpos($file, '.php') === False) AND (strpos($file, '.json') === False)){
-				$files[] = Array('name' => basename($file), 'time' => filectime($file));
+				$files[] = Array('name' => basename($file), 'time' => filemtime($file));
 			}
 		}
 		return $files;
