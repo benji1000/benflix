@@ -84,7 +84,7 @@
 	// Returns the translated string if it exists (or the English string otherwise)
 	function translate($string){
 		global $i18n;
-		if(isset($i18n[LANGUAGE]) and isset($i18n[LANGUAGE][$string])){
+		if(isset($i18n[LANGUAGE]) && isset($i18n[LANGUAGE][$string])){
 			return $i18n[LANGUAGE][$string];
 		}
 		else {
@@ -136,9 +136,9 @@
 	}
 
 	// Update the local database ($argv is for use in CLI mode)
-	if(!empty($_GET['updateLocalDatabase']) OR (!empty($argv[1]) AND ($argv[1] == 'updateLocalDatabase'))){
-		$verbose = ((!empty($_GET['verbose'])) OR (in_array('verbose', $argv)));
-		$purge = ((!empty($_GET['purge'])) OR (in_array('purge', $argv)));
+	if(!empty($_GET['updateLocalDatabase']) || (!empty($argv[1]) && ($argv[1] == 'updateLocalDatabase'))){
+		$verbose = ((!empty($_GET['verbose'])) || (in_array('verbose', $argv)));
+		$purge = ((!empty($_GET['purge'])) || (in_array('purge', $argv)));
 		$cliRun = defined('STDIN');
 
 		if($cliRun){$separator = "\n";}else{$separator = '<br />';}
@@ -150,7 +150,7 @@
 		}
 		else{
 			if($purge){
-				if($cliRun OR ALLOW_PURGE_FROM_WEB){
+				if($cliRun || ALLOW_PURGE_FROM_WEB){
 					file_put_contents(LOCAL_DB_FILE, '');
 				}
 				else{
@@ -189,9 +189,9 @@
 			if($verbose){echo $newLine;}
 		}
 		if($verbose){echo 'Database was updated and now contains '.$movies.' movies.';}
-		if($verbose AND ($newMovies == 1)){echo ' One new movie was added.';}
-		if($verbose AND ($newMovies > 1)){echo ' '.$newMovies.' new movies were added.';}
-		if($verbose AND $cliRun){echo $separator;}
+		if($verbose && ($newMovies == 1)){echo ' One new movie was added.';}
+		if($verbose && ($newMovies > 1)){echo ' '.$newMovies.' new movies were added.';}
+		if($verbose && $cliRun){echo $separator;}
 		exit;
 	}
 
@@ -209,7 +209,7 @@
 		// Format and return a proper array
 		$files = Array();
 		foreach($allFiles as $file){
-			if((strpos($file, '.php') === False) AND (strpos($file, '.json') === False)){
+			if((strpos($file, '.php') === False) && (strpos($file, '.json') === False)){
 				$files[] = Array('name' => basename($file), 'time' => filemtime($file));
 			}
 		}
@@ -224,7 +224,7 @@
 		}
 
 		// When the year is specified between parenthesis in the filename, perform a search with the year
-		if(preg_match('/(.+)\s\(([0-9]+)\)/', $movieName, $matches)){
+		if(preg_match('/(.+)\s\((\d+)\)/', $movieName, $matches)){
 			$movieNameEncoded = rawurlencode($matches[1]);
 			$movieInfo = get_url_contents('https://www.omdbapi.com/?apikey='.API_KEY.'&t='.$movieNameEncoded.'&y='.$matches[2].'&r=json');
 		}
@@ -250,9 +250,7 @@
 			$arrayDb = Array($fileName => filter_movie_properties($movieInfo));
 		}
 
-		$result = file_put_contents(LOCAL_DB_FILE, json_encode($arrayDb));
-
-		return $result;
+		return file_put_contents(LOCAL_DB_FILE, json_encode($arrayDb));
 	}
 
 	function is_movie_in_database($fileName){
@@ -310,7 +308,8 @@
 	// The logo is in base64 so that the file is not dependant on anything
 	define('BENFLIX_LOGO', 'data:image/png;base64,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');
 ?>
-<html>
+<!DOCTYPE html>
+<html lang="en">
 	<head>
 		<meta charset="utf-8">
 		<title><?php echo PAGE_TITLE; ?></title>
@@ -567,7 +566,7 @@
 				}
 				#wall > div > h2 > span {
 					font-size: 16px;
-					margin-right: 5x;
+					margin-right: 5px;
 					margin-bottom: 3px;
 				}
 			}
